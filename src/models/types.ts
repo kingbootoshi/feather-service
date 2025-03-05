@@ -21,12 +21,17 @@ export interface Agent {
   systemPrompt: string;
   createdAt: Date;
   tools?: Tool[];
-  structuredOutputSchema?: any;
+  structuredOutputSchema?: {
+    name?: string;
+    strict?: boolean;
+    schema: any;
+  };
   autoExecuteTools?: boolean;
   cognition?: boolean;
   chainRun?: boolean;
   maxChainIterations?: number;
   forceTool?: boolean;
+  additionalParams?: Record<string, any>;
 }
 
 export interface PipelineStep {
@@ -49,18 +54,34 @@ export interface Pipeline {
   outputDestinations?: OutputDestination[];
 }
 
+export interface RunOutput {
+  agentId: string;
+  output: any;
+  timestamp: Date;
+  meta?: {
+    functionCalls?: Array<{
+      functionName: string;
+      functionArgs: any;
+    }>;
+    structuredOutput?: boolean;
+  };
+}
+
 export interface Run {
   id: string;
   pipelineId?: string;
   agentId?: string;
   input: string;
-  outputs: Array<{
-    agentId: string;
-    output: any;
-    timestamp: Date;
-  }>;
+  outputs: RunOutput[];
   status: 'pending' | 'running' | 'completed' | 'failed';
   finalOutput?: any;
+  finalOutputMeta?: {
+    functionCalls?: Array<{
+      functionName: string;
+      functionArgs: any;
+    }>;
+    structuredOutput?: boolean;
+  };
   error?: string;
   createdAt: Date;
   completedAt?: Date;
@@ -73,5 +94,6 @@ export interface StandardAgentOutput {
     functionName: string;
     functionArgs: any;
   }>;
+  structuredOutput?: boolean;
   error?: string;
 }

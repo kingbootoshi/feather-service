@@ -235,10 +235,59 @@ textarea:focus {
   margin-right: 0.5rem;
 }
 
+.form-help {
+  margin-top: 0.25rem;
+  font-size: 0.875rem;
+  color: var(--secondary-color);
+}
+
 .form-actions {
   display: flex;
   gap: 1rem;
   margin-top: 2rem;
+}
+
+/* Tool sections styling */
+.output-section {
+  margin-bottom: 2rem;
+  padding: 1.5rem;
+  background-color: var(--light-gray);
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+}
+
+.output-section h3 {
+  margin-top: 0;
+  margin-bottom: 1rem;
+  color: var(--primary-color);
+}
+
+.tool-item {
+  margin-bottom: 2rem;
+  padding: 1.5rem;
+  background-color: white;
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+}
+
+.tool-item h4 {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 0;
+  margin-bottom: 1.5rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--medium-gray);
+  color: var(--primary-color);
+}
+
+.output-section .button {
+  margin-bottom: 1rem;
+}
+
+/* Structured output styling */
+#structured-output-section textarea {
+  font-family: monospace;
 }
 
 /* Cards */
@@ -486,4 +535,79 @@ footer {
     flex-wrap: wrap;
     gap: 1rem;
   }
+}
+
+/* Enhanced Run details styling */
+.run-header {
+  margin-bottom: 2rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--medium-gray);
+}
+
+.step-output h5 {
+  margin-top: 0;
+  color: var(--primary-color);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.agent-id {
+  font-size: 0.875rem;
+  color: var(--secondary-color);
+  font-weight: normal;
+}
+
+.function-call {
+  margin-bottom: 1.5rem;
+  padding: 1rem;
+  background-color: white;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+}
+
+.function-call h6 {
+  margin-top: 0;
+  color: var(--primary-color);
+  margin-bottom: 0.75rem;
+}
+
+.function-call code {
+  font-family: monospace;
+  background-color: var(--light-gray);
+  padding: 0.125rem 0.25rem;
+  border-radius: 3px;
+}
+
+.function-args {
+  margin-top: 0.5rem;
+}
+
+.function-args pre {
+  margin-top: 0.5rem;
+  max-height: 200px;
+  overflow: auto;
+}
+
+.agent-output pre {
+  white-space: pre-wrap;
+  word-break: break-word;
+  max-height: 400px;
+  overflow: auto;
+}
+
+.structured-output {
+  font-family: monospace;
+  background-color: white;
+}
+
+.text-output {
+  margin-top: 1rem;
+}
+
+.no-steps {
+  padding: 1rem;
+  text-align: center;
+  color: var(--secondary-color);
+  font-style: italic;
 }

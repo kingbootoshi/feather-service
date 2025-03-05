@@ -5,7 +5,8 @@ import {
   createPipeline,
   updatePipeline,
   deletePipeline,
-  getRunById
+  getRunById,
+  getAllRuns
 } from '../db/database';
 import { runPipeline } from '../utils/pipelineService';
 import { Pipeline } from '../models/types';
@@ -23,14 +24,58 @@ export const getPipelines = (req: Request, res: Response): void => {
 // Get a single pipeline by ID
 export const getPipeline = (req: Request, res: Response): void => {
   try {
+    console.log(`Getting pipeline details for ID: ${req.params.id}`);
+    
     const pipeline = getPipelineById(req.params.id);
     if (!pipeline) {
+      console.log(`Pipeline with ID ${req.params.id} not found`);
       res.status(404).json({ error: 'Pipeline not found' });
       return;
     }
+    
+    // If includeLatestRun query param is true, add the latest run
+    if (req.query.includeLatestRun === 'true') {
+      console.log(`Including latest run for pipeline ${req.params.id}`);
+      
+      // Get all runs
+      const allRuns = getAllRuns();
+      
+      // Filter runs for this pipeline and sort by createdAt (newest first)
+      const pipelineRuns = allRuns
+        .filter(run => run.pipelineId === pipeline.id)
+        .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+      
+      // Add latest run if exists
+      if (pipelineRuns.length > 0) {
+        const latestRun = pipelineRuns[0];
+        console.log(`Found latest run: ${latestRun.id}, status: ${latestRun.status}`);
+        
+        res.status(200).json({
+          ...pipeline,
+          latestRun: {
+            id: latestRun.id,
+            status: latestRun.status,
+            createdAt: latestRun.createdAt,
+            completedAt: latestRun.completedAt,
+            input: latestRun.input,
+            finalOutput: latestRun.finalOutput,
+            error: latestRun.error
+          }
+        });
+        return;
+      } else {
+        console.log(`No runs found for pipeline ${req.params.id}`);
+      }
+    }
+    
+    // Return just the pipeline if no latest run requested or none found
     res.status(200).json(pipeline);
   } catch (error) {
-    res.status(500).json({ error: 'Failed to fetch pipeline' });
+    console.error(`Error getting pipeline details:`, error);
+    res.status(500).json({ 
+      error: 'Failed to fetch pipeline',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    });
   }
 };
 
@@ -115,28 +160,41 @@ export const deleteExistingPipeline = (req: Request, res: Response): void => {
 // Run a pipeline
 export const runExistingPipeline = async (req: Request, res: Response): Promise<void> => {
   try {
+    console.log(`Running pipeline with ID: ${req.params.id}`);
+    
     const pipeline = getPipelineById(req.params.id);
     if (!pipeline) {
+      console.log(`Pipeline with ID ${req.params.id} not found`);
       res.status(404).json({ error: 'Pipeline not found' });
       return;
     }
 
     const { input } = req.body;
     if (!input) {
+      console.log(`No input provided for pipeline run`);
       res.status(400).json({ error: 'Input is required' });
       return;
     }
 
+    console.log(`Starting pipeline execution for ${pipeline.name} (${pipeline.id})`);
+    
     // Run the pipeline asynchronously and return the run ID for tracking
     const run = await runPipeline(pipeline, input);
+    
+    console.log(`Pipeline execution completed with status: ${run.status}`);
     
     res.status(200).json({
       runId: run.id,
       status: run.status,
       pipelineId: pipeline.id,
-      pipelineName: pipeline.name
+      pipelineName: pipeline.name,
+      createdAt: run.createdAt,
+      completedAt: run.completedAt,
+      finalOutput: run.finalOutput,
+      error: run.error,
     });
   } catch (error) {
+    console.error(`Error running pipeline:`, error);
     res.status(500).json({ 
       error: 'Failed to run pipeline',
       details: error instanceof Error ? error.message : 'Unknown error' 
@@ -144,16 +202,75 @@ export const runExistingPipeline = async (req: Request, res: Response): Promise<
   }
 };
 
+// Get all runs for a pipeline
+export const getPipelineRuns = (req: Request, res: Response): void => {
+  try {
+    console.log(`Getting all runs for pipeline ID: ${req.params.id}`);
+    
+    // First check if the pipeline exists
+    const pipeline = getPipelineById(req.params.id);
+    if (!pipeline) {
+      console.log(`Pipeline with ID ${req.params.id} not found`);
+      res.status(404).json({ error: 'Pipeline not found' });
+      return;
+    }
+    
+    // Get all runs
+    const allRuns = getAllRuns();
+    
+    // Filter runs for this pipeline and sort by createdAt (newest first)
+    const pipelineRuns = allRuns
+      .filter(run => run.pipelineId === pipeline.id)
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+      .map(run => ({
+        id: run.id,
+        status: run.status,
+        createdAt: run.createdAt,
+        completedAt: run.completedAt,
+        input: run.input,
+        finalOutput: run.finalOutput,
+        error: run.error,
+        stepCount: run.outputs.length
+      }));
+      
+    console.log(`Found ${pipelineRuns.length} runs for pipeline ${pipeline.id}`);
+    
+    res.status(200).json({
+      pipelineId: pipeline.id,
+      pipelineName: pipeline.name,
+      runCount: pipelineRuns.length,
+      runs: pipelineRuns
+    });
+  } catch (error) {
+    console.error(`Error getting pipeline runs:`, error);
+    res.status(500).json({ 
+      error: 'Failed to fetch pipeline runs',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+};
+
 // Get a specific run
 export const getRun = (req: Request, res: Response): void => {
   try {
+    console.log(`Getting run details for run ID: ${req.params.runId}`);
     const run = getRunById(req.params.runId);
+    
     if (!run) {
+      console.log(`Run with ID ${req.params.runId} not found`);
       res.status(404).json({ error: 'Run not found' });
       return;
     }
+    
+    console.log(`Found run with ID ${req.params.runId}, status: ${run.status}`);
+    
+    // Return the full run details
     res.status(200).json(run);
   } catch (error) {
-    res.status(500).json({ error: 'Failed to fetch run' });
+    console.error(`Error getting run details:`, error);
+    res.status(500).json({ 
+      error: 'Failed to fetch run',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    });
   }
 };

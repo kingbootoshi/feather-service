@@ -51,11 +51,88 @@
             <textarea id="systemPrompt" rows="8" required placeholder="Enter the system prompt that defines your agent's behavior"></textarea>
           </div>
           
+          <!-- Output configuration (Tools or Structured Output) -->
+          <div class="form-group">
+            <label for="outputType">Output Type:</label>
+            <select id="outputType">
+              <option value="text">Plain Text (Default)</option>
+              <option value="tools">Function Tools</option>
+              <option value="structured">Structured Output</option>
+            </select>
+            <p class="form-help">Choose how the agent should output information. Tools and structured output are mutually exclusive.</p>
+          </div>
+          
+          <!-- Function Tools Section (initially hidden) -->
+          <div id="tools-section" class="output-section hidden">
+            <h3>Function Tools</h3>
+            <p>Define tools that the agent can use to perform tasks.</p>
+            
+            <div id="tools-container">
+              <!-- Tools will be added here dynamically -->
+            </div>
+            
+            <button type="button" id="add-tool" class="button secondary">+ Add Tool</button>
+            
+            <div class="form-group checkbox">
+              <label for="autoExecuteTools">
+                <input type="checkbox" id="autoExecuteTools" checked>
+                Auto-Execute Tools
+              </label>
+              <p class="form-help">When enabled, tool calls will automatically execute and return results to the agent.</p>
+            </div>
+            
+            <div class="form-group checkbox">
+              <label for="forceTool">
+                <input type="checkbox" id="forceTool">
+                Force Tool Usage
+              </label>
+              <p class="form-help">Force the agent to use exactly one tool (requires exactly one tool).</p>
+            </div>
+          </div>
+          
+          <!-- Structured Output Section (initially hidden) -->
+          <div id="structured-output-section" class="output-section hidden">
+            <h3>Structured Output</h3>
+            <p>Define a JSON schema for the agent's output structure.</p>
+            
+            <div class="form-group">
+              <label for="structuredOutputName">Schema Name:</label>
+              <input type="text" id="structuredOutputName" placeholder="E.g., 'weather_response'">
+            </div>
+            
+            <div class="form-group">
+              <label for="structuredOutputSchema">JSON Schema:</label>
+              <textarea id="structuredOutputSchema" rows="10" placeholder='{
+  "type": "object",
+  "properties": {
+    "answer": {
+      "type": "string",
+      "description": "The main answer to the user's question"
+    },
+    "confidence": {
+      "type": "number",
+      "description": "Confidence score between 0-1"
+    }
+  },
+  "required": ["answer", "confidence"]
+}'></textarea>
+            </div>
+            
+            <div class="form-group checkbox">
+              <label for="strictSchema">
+                <input type="checkbox" id="strictSchema" checked>
+                Strict Schema Validation
+              </label>
+              <p class="form-help">When enabled, responses must strictly conform to the schema.</p>
+            </div>
+          </div>
+          
           <div class="form-group checkbox">
             <label for="cognition">
               <input type="checkbox" id="cognition">
               Enable Cognition (think, plan, speak features)
             </label>
+            <p class="form-help">Enables &lt;think&gt;, &lt;plan&gt;, and &lt;speak&gt; XML tags for structured reasoning.</p>
           </div>
           
           <div class="form-group checkbox">
@@ -63,25 +140,22 @@
               <input type="checkbox" id="chainRun">
               Enable Chain Run (multiple steps)
             </label>
+            <p class="form-help">Allows the agent to execute multiple steps in sequence with a finish_run tool.</p>
           </div>
           
           <div class="form-group">
             <label for="maxChainIterations">Max Chain Iterations:</label>
             <input type="number" id="maxChainIterations" min="1" max="20" value="5">
+            <p class="form-help">Maximum number of iterations when chain running is enabled.</p>
           </div>
           
-          <div class="form-group checkbox">
-            <label for="autoExecuteTools">
-              <input type="checkbox" id="autoExecuteTools" checked>
-              Auto-Execute Tools
-            </label>
-          </div>
-          
-          <div class="form-group checkbox">
-            <label for="forceTool">
-              <input type="checkbox" id="forceTool">
-              Force Tool Usage
-            </label>
+          <div class="form-group">
+            <label for="additionalParams">Additional LLM Parameters (JSON):</label>
+            <textarea id="additionalParams" rows="3" placeholder='{
+  "temperature": 0.7,
+  "top_p": 1.0
+}'></textarea>
+            <p class="form-help">Optional parameters to pass to the LLM API (e.g., temperature, top_p).</p>
           </div>
           
           <div class="form-actions">
@@ -91,6 +165,48 @@
         </form>
       </section>
     </main>
+    
+    <!-- Tool Template (hidden, used for cloning) -->
+    <template id="tool-template">
+      <div class="tool-item">
+        <h4>Tool <span class="tool-number"></span> <button type="button" class="remove-tool button small danger">Remove</button></h4>
+        
+        <div class="form-group">
+          <label for="toolName_IDX">Function Name:</label>
+          <input type="text" id="toolName_IDX" class="tool-name" placeholder="E.g., 'search_web'" required>
+        </div>
+        
+        <div class="form-group">
+          <label for="toolDescription_IDX">Description:</label>
+          <input type="text" id="toolDescription_IDX" class="tool-description" placeholder="E.g., 'Search the web for information'" required>
+        </div>
+        
+        <div class="form-group">
+          <label for="toolParams_IDX">Parameters Schema (JSON):</label>
+          <textarea id="toolParams_IDX" class="tool-params" rows="5" placeholder='{
+  "type": "object",
+  "properties": {
+    "query": {
+      "type": "string",
+      "description": "The search query"
+    }
+  },
+  "required": ["query"]
+}' required></textarea>
+        </div>
+        
+        <div class="form-group">
+          <label for="toolImplementation_IDX">Implementation (JavaScript):</label>
+          <textarea id="toolImplementation_IDX" class="tool-implementation" rows="5" placeholder='async function execute(args) {
+  // Example implementation
+  console.log("Executing tool with args:", args);
+  return { 
+    result: `Results for ${args.query}: Sample data here` 
+  };
+}' required></textarea>
+        </div>
+      </div>
+    </template>
     
     <footer>
       <p>&copy; 2025 Feather Agent Service</p>
