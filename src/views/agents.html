@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Agents - Feather Agent Service</title>
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>Feather Agent Service</h1>
+      <nav>
+        <ul>
+          <li><a href="/">Home</a></li>
+          <li><a href="/agents" class="active">Agents</a></li>
+          <li><a href="/pipelines">Pipelines</a></li>
+          <li><a href="/runs">Runs</a></li>
+        </ul>
+      </nav>
+    </header>
+    
+    <main>
+      <section class="page-header">
+        <h2>Agents</h2>
+        <a href="/agents/new" class="button primary">Create New Agent</a>
+      </section>
+      
+      <section class="content">
+        <div class="agents-list">
+          <% if (agents && agents.length > 0) { %>
+            <% agents.forEach(agent => { %>
+              <div class="agent-card" data-id="<%= agent.id %>">
+                <h3><%= agent.name %></h3>
+                <p class="model"><strong>Model:</strong> <%= agent.model %></p>
+                <p class="system-prompt"><strong>System Prompt:</strong> <%= agent.systemPrompt.substring(0, 100) %>...</p>
+                <div class="actions">
+                  <button class="run-agent" data-id="<%= agent.id %>">Run</button>
+                  <button class="edit-agent" data-id="<%= agent.id %>">Edit</button>
+                  <button class="delete-agent" data-id="<%= agent.id %>">Delete</button>
+                </div>
+              </div>
+            <% }) %>
+          <% } else { %>
+            <div class="no-items">
+              <p>No agents found. <a href="/agents/new">Create your first agent</a>.</p>
+            </div>
+          <% } %>
+        </div>
+      </section>
+      
+      <section class="agent-run-form hidden" id="agent-run-form">
+        <h3>Run Agent</h3>
+        <div class="form-group">
+          <label for="agent-input">Input:</label>
+          <textarea id="agent-input" rows="4" placeholder="Enter input for the agent..."></textarea>
+        </div>
+        <div class="form-actions">
+          <button id="run-agent-submit" class="button primary">Run</button>
+          <button id="run-agent-cancel" class="button secondary">Cancel</button>
+        </div>
+        <div class="agent-result hidden" id="agent-result">
+          <h4>Result:</h4>
+          <pre id="agent-result-content"></pre>
+        </div>
+      </section>
+    </main>
+    
+    <footer>
+      <p>&copy; 2025 Feather Agent Service</p>
+    </footer>
+  </div>
+  
+  <script src="/js/agents.js"></script>
+</body>
+</html>

@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Runs - Feather Agent Service</title>
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>Feather Agent Service</h1>
+      <nav>
+        <ul>
+          <li><a href="/">Home</a></li>
+          <li><a href="/agents">Agents</a></li>
+          <li><a href="/pipelines">Pipelines</a></li>
+          <li><a href="/runs" class="active">Runs</a></li>
+        </ul>
+      </nav>
+    </header>
+    
+    <main>
+      <section class="page-header">
+        <h2>Runs</h2>
+      </section>
+      
+      <section class="content">
+        <div class="runs-list">
+          <% if (runs && runs.length > 0) { %>
+            <table class="runs-table">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Type</th>
+                  <th>Name</th>
+                  <th>Status</th>
+                  <th>Created</th>
+                  <th>Completed</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% runs.forEach(run => { %>
+                  <tr class="run-row <%= run.status %>">
+                    <td><%= run.id.substring(0, 8) %></td>
+                    <td><%= run.pipelineId ? 'Pipeline' : 'Agent' %></td>
+                    <td>
+                      <% if (run.pipelineId) { %>
+                        Pipeline: <%= run.pipelineId %>
+                      <% } else if (run.agentId) { %>
+                        Agent: <%= run.agentId %>
+                      <% } else { %>
+                        Unknown
+                      <% } %>
+                    </td>
+                    <td><span class="status-badge <%= run.status %>"><%= run.status %></span></td>
+                    <td><%= new Date(run.createdAt).toLocaleString() %></td>
+                    <td><%= run.completedAt ? new Date(run.completedAt).toLocaleString() : '-' %></td>
+                    <td>
+                      <a href="/runs/<%= run.id %>" class="button small">View</a>
+                    </td>
+                  </tr>
+                <% }) %>
+              </tbody>
+            </table>
+          <% } else { %>
+            <div class="no-items">
+              <p>No runs found. Run an agent or pipeline to see results here.</p>
+            </div>
+          <% } %>
+        </div>
+      </section>
+    </main>
+    
+    <footer>
+      <p>&copy; 2025 Feather Agent Service</p>
+    </footer>
+  </div>
+  
+  <script src="/js/runs.js"></script>
+</body>
+</html>

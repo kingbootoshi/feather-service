@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Run Details - Feather Agent Service</title>
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>Feather Agent Service</h1>
+      <nav>
+        <ul>
+          <li><a href="/">Home</a></li>
+          <li><a href="/agents">Agents</a></li>
+          <li><a href="/pipelines">Pipelines</a></li>
+          <li><a href="/runs" class="active">Runs</a></li>
+        </ul>
+      </nav>
+    </header>
+    
+    <main>
+      <section class="page-header">
+        <h2>Run Details</h2>
+        <a href="/runs" class="button secondary">Back to Runs</a>
+      </section>
+      
+      <section class="content">
+        <div id="run-loading">Loading run details...</div>
+        
+        <div id="run-details" class="hidden">
+          <div class="run-header">
+            <h3>Run: <span id="run-id"></span></h3>
+            <div class="run-metadata">
+              <p><strong>Type:</strong> <span id="run-type"></span></p>
+              <p><strong>Status:</strong> <span id="run-status"></span></p>
+              <p><strong>Created:</strong> <span id="run-created"></span></p>
+              <p><strong>Completed:</strong> <span id="run-completed"></span></p>
+            </div>
+          </div>
+          
+          <div class="run-input">
+            <h4>Input:</h4>
+            <pre id="run-input-content"></pre>
+          </div>
+          
+          <div class="run-steps">
+            <h4>Steps:</h4>
+            <div id="run-steps-container">
+              <!-- Steps will be added here dynamically -->
+            </div>
+          </div>
+          
+          <div class="run-output">
+            <h4>Final Output:</h4>
+            <pre id="run-output-content"></pre>
+          </div>
+          
+          <div id="run-error" class="hidden">
+            <h4>Error:</h4>
+            <pre id="run-error-content"></pre>
+          </div>
+        </div>
+        
+        <div id="run-not-found" class="hidden">
+          <p>Run not found or still processing. <a href="/runs">Return to runs list</a>.</p>
+        </div>
+      </section>
+    </main>
+    
+    <footer>
+      <p>&copy; 2025 Feather Agent Service</p>
+    </footer>
+  </div>
+  
+  <script>
+    // Pass the runId to the JavaScript
+    const runId = "<%= runId %>";
+  </script>
+  <script src="/js/run-details.js"></script>
+</body>
+</html>

@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pipelines - Feather Agent Service</title>
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>Feather Agent Service</h1>
+      <nav>
+        <ul>
+          <li><a href="/">Home</a></li>
+          <li><a href="/agents">Agents</a></li>
+          <li><a href="/pipelines" class="active">Pipelines</a></li>
+          <li><a href="/runs">Runs</a></li>
+        </ul>
+      </nav>
+    </header>
+    
+    <main>
+      <section class="page-header">
+        <h2>Pipelines</h2>
+        <a href="/pipelines/new" class="button primary">Create New Pipeline</a>
+      </section>
+      
+      <section class="content">
+        <div class="pipelines-list">
+          <% if (pipelines && pipelines.length > 0) { %>
+            <% pipelines.forEach(pipeline => { %>
+              <div class="pipeline-card" data-id="<%= pipeline.id %>">
+                <h3><%= pipeline.name %></h3>
+                <p class="description"><%= pipeline.description %></p>
+                <div class="pipeline-steps">
+                  <h4>Steps:</h4>
+                  <ul>
+                    <% pipeline.steps.forEach((step, index) => { %>
+                      <% const agent = agents.find(a => a.id === step.agentId); %>
+                      <li>
+                        <%= index + 1 %>. 
+                        <% if (agent) { %>
+                          <%= agent.name %>
+                        <% } else { %>
+                          Unknown Agent
+                        <% } %>
+                      </li>
+                    <% }) %>
+                  </ul>
+                </div>
+                <div class="actions">
+                  <button class="run-pipeline" data-id="<%= pipeline.id %>">Run</button>
+                  <button class="edit-pipeline" data-id="<%= pipeline.id %>">Edit</button>
+                  <button class="delete-pipeline" data-id="<%= pipeline.id %>">Delete</button>
+                </div>
+              </div>
+            <% }) %>
+          <% } else { %>
+            <div class="no-items">
+              <p>No pipelines found. <a href="/pipelines/new">Create your first pipeline</a>.</p>
+            </div>
+          <% } %>
+        </div>
+      </section>
+      
+      <section class="pipeline-run-form hidden" id="pipeline-run-form">
+        <h3>Run Pipeline</h3>
+        <div class="form-group">
+          <label for="pipeline-input">Input:</label>
+          <textarea id="pipeline-input" rows="4" placeholder="Enter input for the pipeline..."></textarea>
+        </div>
+        <div class="form-actions">
+          <button id="run-pipeline-submit" class="button primary">Run</button>
+          <button id="run-pipeline-cancel" class="button secondary">Cancel</button>
+        </div>
+        <div class="pipeline-result hidden" id="pipeline-result">
+          <h4>Pipeline Submitted:</h4>
+          <pre id="pipeline-result-content"></pre>
+          <p>View detailed results on the <a href="/runs" id="runs-link">Runs page</a>.</p>
+        </div>
+      </section>
+    </main>
+    
+    <footer>
+      <p>&copy; 2025 Feather Agent Service</p>
+    </footer>
+  </div>
+  
+  <script src="/js/pipelines.js"></script>
+</body>
+</html>

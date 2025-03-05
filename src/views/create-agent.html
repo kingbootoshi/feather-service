@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Create Agent - Feather Agent Service</title>
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>Feather Agent Service</h1>
+      <nav>
+        <ul>
+          <li><a href="/">Home</a></li>
+          <li><a href="/agents" class="active">Agents</a></li>
+          <li><a href="/pipelines">Pipelines</a></li>
+          <li><a href="/runs">Runs</a></li>
+        </ul>
+      </nav>
+    </header>
+    
+    <main>
+      <section class="page-header">
+        <h2>Create New Agent</h2>
+        <a href="/agents" class="button secondary">Back to Agents</a>
+      </section>
+      
+      <section class="content">
+        <form id="create-agent-form" class="form">
+          <div class="form-group">
+            <label for="name">Agent Name:</label>
+            <input type="text" id="name" required placeholder="Enter a name for your agent">
+          </div>
+          
+          <div class="form-group">
+            <label for="model">Model:</label>
+            <select id="model" required>
+              <option value="openai/gpt-4o">OpenAI/GPT-4o</option>
+              <option value="anthropic/claude-3-5-sonnet">Anthropic/Claude-3.5-Sonnet</option>
+              <option value="anthropic/claude-3-opus">Anthropic/Claude-3-Opus</option>
+              <option value="google/gemini-pro">Google/Gemini-Pro</option>
+              <option value="google/gemini-ultra">Google/Gemini-Ultra</option>
+              <option value="meta/llama-3-70b-instruct">Meta/Llama-3-70B-Instruct</option>
+              <option value="deepseek/deepseek-chat">DeepSeek/DeepSeek-Chat</option>
+            </select>
+          </div>
+          
+          <div class="form-group">
+            <label for="systemPrompt">System Prompt:</label>
+            <textarea id="systemPrompt" rows="8" required placeholder="Enter the system prompt that defines your agent's behavior"></textarea>
+          </div>
+          
+          <div class="form-group checkbox">
+            <label for="cognition">
+              <input type="checkbox" id="cognition">
+              Enable Cognition (think, plan, speak features)
+            </label>
+          </div>
+          
+          <div class="form-group checkbox">
+            <label for="chainRun">
+              <input type="checkbox" id="chainRun">
+              Enable Chain Run (multiple steps)
+            </label>
+          </div>
+          
+          <div class="form-group">
+            <label for="maxChainIterations">Max Chain Iterations:</label>
+            <input type="number" id="maxChainIterations" min="1" max="20" value="5">
+          </div>
+          
+          <div class="form-group checkbox">
+            <label for="autoExecuteTools">
+              <input type="checkbox" id="autoExecuteTools" checked>
+              Auto-Execute Tools
+            </label>
+          </div>
+          
+          <div class="form-group checkbox">
+            <label for="forceTool">
+              <input type="checkbox" id="forceTool">
+              Force Tool Usage
+            </label>
+          </div>
+          
+          <div class="form-actions">
+            <button type="submit" class="button primary">Create Agent</button>
+            <button type="button" id="cancel-create" class="button secondary">Cancel</button>
+          </div>
+        </form>
+      </section>
+    </main>
+    
+    <footer>
+      <p>&copy; 2025 Feather Agent Service</p>
+    </footer>
+  </div>
+  
+  <script src="/js/create-agent.js"></script>
+</body>
+</html>

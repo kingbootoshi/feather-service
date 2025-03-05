@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Create Pipeline - Feather Agent Service</title>
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>Feather Agent Service</h1>
+      <nav>
+        <ul>
+          <li><a href="/">Home</a></li>
+          <li><a href="/agents">Agents</a></li>
+          <li><a href="/pipelines" class="active">Pipelines</a></li>
+          <li><a href="/runs">Runs</a></li>
+        </ul>
+      </nav>
+    </header>
+    
+    <main>
+      <section class="page-header">
+        <h2>Create New Pipeline</h2>
+        <a href="/pipelines" class="button secondary">Back to Pipelines</a>
+      </section>
+      
+      <section class="content">
+        <form id="create-pipeline-form" class="form">
+          <div class="form-group">
+            <label for="name">Pipeline Name:</label>
+            <input type="text" id="name" required placeholder="Enter a name for your pipeline">
+          </div>
+          
+          <div class="form-group">
+            <label for="description">Description:</label>
+            <textarea id="description" rows="3" placeholder="Describe what this pipeline does"></textarea>
+          </div>
+          
+          <div class="form-group">
+            <label>Pipeline Steps:</label>
+            <div id="pipeline-steps-container">
+              <!-- Steps will be added here dynamically -->
+            </div>
+            <button type="button" id="add-step" class="button secondary">Add Step</button>
+          </div>
+          
+          <div class="form-group">
+            <label>Output Destinations:</label>
+            <div id="output-destinations-container">
+              <!-- Output destinations will be added here dynamically -->
+            </div>
+            <button type="button" id="add-destination" class="button secondary">Add Destination</button>
+          </div>
+          
+          <div class="form-actions">
+            <button type="submit" class="button primary">Create Pipeline</button>
+            <button type="button" id="cancel-create" class="button secondary">Cancel</button>
+          </div>
+        </form>
+        
+        <!-- Template for a pipeline step -->
+        <template id="step-template">
+          <div class="pipeline-step">
+            <div class="step-header">
+              <h4>Step <span class="step-number"></span></h4>
+              <button type="button" class="remove-step button danger small">Remove</button>
+            </div>
+            <div class="form-group">
+              <label>Agent:</label>
+              <select class="agent-select" required>
+                <option value="">Select an agent</option>
+                <% agents.forEach(agent => { %>
+                  <option value="<%= agent.id %>"><%= agent.name %></option>
+                <% }) %>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Input Mapping:</label>
+              <select class="input-mapping-select">
+                <option value="direct">Direct (use previous output as-is)</option>
+                <option value="field.output">Extract 'output' field</option>
+                <option value="field.result">Extract 'result' field</option>
+                <option value="field.data">Extract 'data' field</option>
+              </select>
+            </div>
+          </div>
+        </template>
+        
+        <!-- Template for an output destination -->
+        <template id="destination-template">
+          <div class="output-destination">
+            <div class="destination-header">
+              <h4>Destination <span class="destination-number"></span></h4>
+              <button type="button" class="remove-destination button danger small">Remove</button>
+            </div>
+            <div class="form-group">
+              <label>Type:</label>
+              <select class="destination-type-select" required>
+                <option value="">Select a type</option>
+                <option value="webhook">Webhook</option>
+                <option value="email">Email</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Target:</label>
+              <input type="text" class="destination-target" placeholder="URL or email address">
+            </div>
+          </div>
+        </template>
+      </section>
+    </main>
+    
+    <footer>
+      <p>&copy; 2025 Feather Agent Service</p>
+    </footer>
+  </div>
+  
+  <script src="/js/create-pipeline.js"></script>
+</body>
+</html>
