@@ -13,20 +13,41 @@
       <nav>
         <ul>
           <li><a href="/" class="active">Home</a></li>
-          <li><a href="/agents">Agents</a></li>
-          <li><a href="/pipelines">Pipelines</a></li>
-          <li><a href="/runs">Runs</a></li>
+          <li><a href="/agents" class="auth-required">Agents</a></li>
+          <li><a href="/pipelines" class="auth-required">Pipelines</a></li>
+          <li><a href="/runs" class="auth-required">Runs</a></li>
+          <!-- User menu (shown when logged in) -->
+          <li id="user-menu" class="hidden">
+            <a href="/profile" id="profile-link">My Profile</a>
+          </li>
+          <!-- Auth links (shown when logged out) -->
+          <li id="auth-links">
+            <a href="/login" class="button small">Log In</a>
+            <a href="/register" class="button small primary">Register</a>
+          </li>
         </ul>
       </nav>
     </header>
     
     <main>
+      <!-- Auth prompt (shown when logged out) -->
+      <section id="auth-prompt" class="hidden">
+        <div class="alert info">
+          <p>Please <a href="/login">log in</a> or <a href="/register">register</a> to access all features.</p>
+        </div>
+      </section>
+      
       <section class="hero">
         <h2>Build and Run AI Agents and Pipelines</h2>
         <p>Create versatile AI agents, chain them into pipelines, and run them through a simple API.</p>
         <div class="cta-buttons">
-          <a href="/agents/new" class="button primary">Create Agent</a>
-          <a href="/pipelines/new" class="button secondary">Create Pipeline</a>
+          <a href="/agents/new" class="button primary auth-required">Create Agent</a>
+          <a href="/pipelines/new" class="button secondary auth-required">Create Pipeline</a>
+          <!-- Public action buttons (shown when logged out) -->
+          <div id="public-cta" class="hidden">
+            <a href="/register" class="button primary">Get Started</a>
+            <a href="/login" class="button secondary">Log In</a>
+          </div>
         </div>
       </section>
       
@@ -51,6 +72,7 @@
     </footer>
   </div>
   
+  <script src="/js/utils.js"></script>
   <script src="/js/main.js"></script>
 </body>
 </html>

@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Create Agent - Feather Agent Service</title>
   <link rel="stylesheet" href="/css/styles.css">
+  <script src="https://unpkg.com/monaco-editor@latest/min/vs/loader.js"></script>
 </head>
 <body>
   <div class="container">
@@ -92,30 +93,26 @@
           
           <!-- Structured Output Section (initially hidden) -->
           <div id="structured-output-section" class="output-section hidden">
-            <h3>Structured Output</h3>
-            <p>Define a JSON schema for the agent's output structure.</p>
+            <h3>Structured Output Schema Builder</h3>
+            <p>Define the structure for the agent's output.</p>
             
             <div class="form-group">
               <label for="structuredOutputName">Schema Name:</label>
               <input type="text" id="structuredOutputName" placeholder="E.g., 'weather_response'">
             </div>
             
+            <div id="schema-builder-container">
+              <div class="schema-property-list">
+                <h4>Properties</h4>
+                <div id="schema-properties-container"></div>
+                <button type="button" id="add-schema-property" class="button small">+ Add Property</button>
+              </div>
+            </div>
+            
             <div class="form-group">
-              <label for="structuredOutputSchema">JSON Schema:</label>
-              <textarea id="structuredOutputSchema" rows="10" placeholder='{
-  "type": "object",
-  "properties": {
-    "answer": {
-      "type": "string",
-      "description": "The main answer to the user's question"
-    },
-    "confidence": {
-      "type": "number",
-      "description": "Confidence score between 0-1"
-    }
-  },
-  "required": ["answer", "confidence"]
-}'></textarea>
+              <label for="structuredOutputPreview">Generated Schema (Preview):</label>
+              <pre id="structuredOutputPreview" class="code-preview"></pre>
+              <input type="hidden" id="structuredOutputSchema">
             </div>
             
             <div class="form-group checkbox">
@@ -181,29 +178,114 @@
           <input type="text" id="toolDescription_IDX" class="tool-description" placeholder="E.g., 'Search the web for information'" required>
         </div>
         
+        <!-- Parameter Builder -->
         <div class="form-group">
-          <label for="toolParams_IDX">Parameters Schema (JSON):</label>
-          <textarea id="toolParams_IDX" class="tool-params" rows="5" placeholder='{
-  "type": "object",
-  "properties": {
-    "query": {
-      "type": "string",
-      "description": "The search query"
-    }
-  },
-  "required": ["query"]
-}' required></textarea>
+          <label>Parameters:</label>
+          <div class="tool-parameters-builder" id="toolParametersBuilder_IDX">
+            <div class="tool-parameters-list"></div>
+            <button type="button" class="add-parameter button small">+ Add Parameter</button>
+          </div>
+          <input type="hidden" id="toolParams_IDX" class="tool-params">
+        </div>
+        
+        <!-- Code Editor -->
+        <div class="form-group">
+          <label for="toolImplementation_IDX">Implementation (TypeScript):</label>
+          <div id="monaco-editor-container_IDX" class="monaco-editor-container" style="height: 300px; border: 1px solid #ccc;"></div>
+          <input type="hidden" id="toolImplementation_IDX" class="tool-implementation">
+        </div>
+        
+        <!-- Test Section -->
+        <div class="tool-test-section">
+          <h5>Test Tool</h5>
+          <div class="test-args-container" id="testArgsContainer_IDX"></div>
+          <div class="form-actions">
+            <button type="button" id="testTool_IDX" class="test-tool button small">Run Test</button>
+          </div>
+          <div class="test-result-container">
+            <label>Result:</label>
+            <pre id="testResult_IDX" class="test-result"></pre>
+          </div>
+        </div>
+      </div>
+    </template>
+    
+    <!-- Schema Property Template -->
+    <template id="schema-property-template">
+      <div class="schema-property">
+        <div class="schema-property-header">
+          <h5>Property <button type="button" class="remove-property button small danger">Remove</button></h5>
         </div>
         
         <div class="form-group">
-          <label for="toolImplementation_IDX">Implementation (JavaScript):</label>
-          <textarea id="toolImplementation_IDX" class="tool-implementation" rows="5" placeholder='async function execute(args) {
-  // Example implementation
-  console.log("Executing tool with args:", args);
-  return { 
-    result: `Results for ${args.query}: Sample data here` 
-  };
-}' required></textarea>
+          <label for="propName_IDX">Name:</label>
+          <input type="text" id="propName_IDX" class="prop-name" placeholder="E.g., 'temperature'" required>
+        </div>
+        
+        <div class="form-group">
+          <label for="propType_IDX">Type:</label>
+          <select id="propType_IDX" class="prop-type">
+            <option value="string">String</option>
+            <option value="number">Number</option>
+            <option value="boolean">Boolean</option>
+            <option value="object">Object</option>
+            <option value="array">Array</option>
+          </select>
+        </div>
+        
+        <div class="form-group">
+          <label for="propDescription_IDX">Description:</label>
+          <input type="text" id="propDescription_IDX" class="prop-description" placeholder="E.g., 'The temperature in Celsius'">
+        </div>
+        
+        <div class="form-group checkbox">
+          <label for="propRequired_IDX">
+            <input type="checkbox" id="propRequired_IDX" class="prop-required">
+            Required
+          </label>
+        </div>
+        
+        <!-- For object and array types -->
+        <div class="nested-properties hidden" id="nestedProps_IDX">
+          <div class="nested-properties-container"></div>
+          <button type="button" class="add-nested-property button small">+ Add Nested Property</button>
+        </div>
+      </div>
+    </template>
+    
+    <!-- Tool Parameter Template -->
+    <template id="tool-parameter-template">
+      <div class="tool-parameter">
+        <div class="parameter-header">
+          <h5>Parameter <button type="button" class="remove-parameter button small danger">Remove</button></h5>
+        </div>
+        
+        <div class="form-group">
+          <label for="paramName_IDX">Name:</label>
+          <input type="text" id="paramName_IDX" class="param-name" placeholder="E.g., 'query'" required>
+        </div>
+        
+        <div class="form-group">
+          <label for="paramType_IDX">Type:</label>
+          <select id="paramType_IDX" class="param-type">
+            <option value="string">String</option>
+            <option value="number">Number</option>
+            <option value="boolean">Boolean</option>
+            <option value="object">Object</option>
+            <option value="array">Array</option>
+          </select>
+        </div>
+        
+        <div class="form-group">
+          <label for="paramDescription_IDX">Description:</label>
+          <input type="text" id="paramDescription_IDX" class="param-description" placeholder="E.g., 'The search query'">
+        </div>
+        
+        <div class="form-group checkbox">
+          <label for="paramRequired_IDX">
+            <input type="checkbox" id="paramRequired_IDX" class="param-required">
+            Required
+          </label>
         </div>
       </div>
     </template>
@@ -213,6 +295,8 @@
     </footer>
   </div>
   
+  <script src="/js/utils.js"></script>
+  <script src="/js/main.js"></script>
   <script src="/js/create-agent.js"></script>
 </body>
 </html>

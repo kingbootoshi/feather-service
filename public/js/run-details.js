@@ -148,7 +148,10 @@ document.addEventListener('DOMContentLoaded', () => {
   
   async function fetchRunDetails() {
     try {
-      const response = await fetch(`/api/pipelines/runs/${runId}`);
+      // Use the new API endpoint with authentication
+      const response = await fetch(`/api/runs/${runId}`, {
+        headers: getAuthHeaders()
+      });
       
       if (response.status === 404) {
         // Run not found
@@ -166,12 +169,31 @@ document.addEventListener('DOMContentLoaded', () => {
       console.log('Run details:', run);
       
       // Get agent names for reference
-      const agentsResponse = await fetch('/api/agents');
-      const agents = await agentsResponse.json();
       const agentMap = {};
-      agents.forEach(agent => {
-        agentMap[agent.id] = agent.name;
-      });
+      try {
+        const agentsResponse = await fetch('/api/agents', {
+          headers: getAuthHeaders() // Make sure we use auth headers here too
+        });
+        
+        if (agentsResponse.ok) {
+          const agentsData = await agentsResponse.json();
+          
+          // Check if response is an array before using forEach
+          if (Array.isArray(agentsData)) {
+            agentsData.forEach(agent => {
+              if (agent && agent.id) {
+                agentMap[agent.id] = agent.name || 'Unnamed Agent';
+              }
+            });
+          } else {
+            console.warn('Agents response is not an array:', agentsData);
+          }
+        } else {
+          console.warn('Failed to fetch agents list:', agentsResponse.status);
+        }
+      } catch (agentError) {
+        console.warn('Error fetching agents:', agentError);
+      }
       
       // Update the UI with the run details
       runIdEl.textContent = run.id;

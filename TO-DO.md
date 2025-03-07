@@ -1,0 +1,1 @@
+i wonder how we can update feather to show the logs or export the logs and make schema better

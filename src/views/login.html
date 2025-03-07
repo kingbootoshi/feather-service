@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login - Feather Agent Service</title>
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>Feather Agent Service</h1>
+    </header>
+    
+    <main>
+      <section class="content">
+        <div class="auth-form-container">
+          <h2>Log in to your account</h2>
+          <p>Enter your credentials to access your agents and pipelines.</p>
+          
+          <form id="login-form" class="form" method="POST" action="/auth/login">
+            <div id="login-error" class="alert danger hidden"></div>
+            
+            <div class="form-group">
+              <label for="email">Email address</label>
+              <input type="email" id="email" name="email" required placeholder="Enter your email">
+            </div>
+            
+            <div class="form-group">
+              <label for="password">Password</label>
+              <input type="password" id="password" name="password" required placeholder="Enter your password">
+            </div>
+            
+            <div class="form-actions">
+              <button type="submit" id="login-button" class="button primary">Log In</button>
+            </div>
+            
+            <div class="auth-links">
+              <p>Don't have an account? <a href="/register">Register</a></p>
+            </div>
+          </form>
+        </div>
+      </section>
+    </main>
+    
+    <footer>
+      <p>&copy; 2025 Feather Agent Service</p>
+    </footer>
+  </div>
+  
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const loginForm = document.getElementById('login-form');
+      const loginButton = document.getElementById('login-button');
+      const loginError = document.getElementById('login-error');
+      
+      // Check if there's a redirect URL in the query params
+      const urlParams = new URLSearchParams(window.location.search);
+      const redirectParam = urlParams.get('redirect');
+      
+      // Add redirect parameter to form action if present
+      if (redirectParam) {
+        loginForm.action = `/auth/login?redirect=${encodeURIComponent(redirectParam)}`;
+      }
+      
+      // Use AJAX instead of form submission to avoid page reload issues
+      loginForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        // Clear previous errors
+        loginError.classList.add('hidden');
+        loginError.textContent = '';
+        
+        // Disable button while submitting
+        loginButton.disabled = true;
+        loginButton.textContent = 'Logging in...';
+        
+        try {
+          const email = document.getElementById('email').value;
+          const password = document.getElementById('password').value;
+          
+          // Get the form action with any redirect parameters
+          const formAction = loginForm.action;
+          
+          const response = await fetch(formAction, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ email, password })
+          });
+          
+          if (response.redirected) {
+            // If server responded with a redirect, follow it
+            window.location.href = response.url;
+            return;
+          }
+          
+          if (!response.ok) {
+            const data = await response.json();
+            throw new Error(data.error || 'Login failed. Please check your credentials.');
+          }
+          
+          // For JSON responses (API mode)
+          const data = await response.json();
+          
+          // Store session info in localStorage for client-side auth
+          if (data.session) {
+            localStorage.setItem('access_token', data.session.access_token);
+            localStorage.setItem('refresh_token', data.session.refresh_token);
+            localStorage.setItem('user_id', data.user.id);
+            localStorage.setItem('user_email', data.user.email);
+            
+            console.log('Session stored in localStorage');
+            
+            // Redirect to the appropriate page
+            const redirectTo = data.redirect || redirectParam || '/agents';
+            console.log('Redirecting to:', redirectTo);
+            window.location.href = redirectTo;
+          } else {
+            throw new Error('No session data received from server');
+          }
+          
+        } catch (error) {
+          console.error('Login error:', error);
+          
+          // Show error message
+          loginError.textContent = error.message;
+          loginError.classList.remove('hidden');
+          
+          // Re-enable button
+          loginButton.disabled = false;
+          loginButton.textContent = 'Log In';
+        }
+      });
+    });
+  </script>
+</body>
+</html>

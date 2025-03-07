@@ -16,6 +16,7 @@ export function createFeatherAgent(agent: Agent): FeatherAgent {
     maxChainIterations: agent.maxChainIterations || 5,
     forceTool: agent.forceTool || false,
     structuredOutputSchema: agent.structuredOutputSchema,
+    debug: true,
   };
   
   // Add any additional parameters
@@ -34,8 +35,122 @@ export function createFeatherAgent(agent: Agent): FeatherAgent {
   
   // Log if structured output is configured
   if (agent.structuredOutputSchema) {
-    console.log(`Configuring agent with structured output schema: ${agent.structuredOutputSchema.name || 'unnamed'}`);
-    console.log(`Schema strict mode: ${agent.structuredOutputSchema.strict}`);
+    // Create a copy of the schema that we can modify
+    let schemaConfig = { ...agent.structuredOutputSchema };
+    
+    // Ensure schema has a name (required by OpenAI/Azure API)
+    if (!schemaConfig.name) {
+      console.log('Schema missing required name field, adding default name');
+      schemaConfig.name = 'structured_output_schema';
+    }
+    
+    // Fix schema name if it contains spaces (required by OpenRouter API)
+    if (schemaConfig.name && schemaConfig.name.includes(' ')) {
+      console.log(`Found invalid schema name with spaces: "${schemaConfig.name}"`);
+      schemaConfig.name = schemaConfig.name.replace(/\s+/g, '_');
+      console.log(`Fixed schema name to: "${schemaConfig.name}"`);
+    }
+    
+    // Ensure additionalProperties: false for strict schemas
+    if (schemaConfig.strict) {
+      const fixObjectSchema = (schema: any) => {
+        if (schema.type === 'object' && !('additionalProperties' in schema)) {
+          console.log('Adding additionalProperties: false to object schema');
+          schema.additionalProperties = false;
+        }
+        if (schema.properties) {
+          Object.values(schema.properties).forEach(prop => fixObjectSchema(prop as any));
+        }
+        if (schema.items) {
+          fixObjectSchema(schema.items);
+        }
+      };
+      
+      fixObjectSchema(schemaConfig.schema);
+      console.log('Updated schema with additionalProperties: false where needed');
+    }
+    
+    // Check for required/property mismatch and auto-fix
+    if (schemaConfig.schema && schemaConfig.schema.required) {
+      const requiredFields = [...schemaConfig.schema.required]; // Copy the array to avoid mutating original
+      const properties = schemaConfig.schema.properties || {};
+      let needsFixing = false;
+      
+      // Create a corrected required array
+      const fixedRequired = [];
+      
+      for (let i = 0; i < requiredFields.length; i++) {
+        const field = requiredFields[i];
+        if (!properties[field]) {
+          console.warn(`Schema has required field "${field}" that doesn't match any property. Attempting to fix.`);
+          console.log(`Properties available: ${Object.keys(properties).join(', ')}`);
+          
+          // Check several variations (camelCase, snake_case, with spaces)
+          const possibleVariations = [
+            field,
+            // Try camelCase if it has underscores (video_idea -> videoIdea)
+            field.replace(/_([a-z])/g, (g) => g[1].toUpperCase()),
+            // Try snake_case if it has camelCase (videoIdea -> video_idea)
+            field.replace(/([A-Z])/g, "_$1").toLowerCase(),
+            // Try removing spaces (video idea -> videoidea)
+            field.replace(/\s+/g, ""),
+            // Try with spaces instead of underscores (video_idea -> video idea)
+            field.replace(/_/g, " ")
+          ];
+          
+          // Find a matching property
+          let matchFound = false;
+          for (const possibleName of possibleVariations) {
+            if (properties[possibleName]) {
+              console.log(`Found matching property "${possibleName}" for required field "${field}"`);
+              fixedRequired.push(possibleName);
+              matchFound = true;
+              needsFixing = true;
+              break;
+            }
+            
+            // Try case-insensitive search
+            const matchingProp = Object.keys(properties).find(
+              prop => prop.toLowerCase() === possibleName.toLowerCase()
+            );
+            
+            if (matchingProp) {
+              console.log(`Found case-insensitive match "${matchingProp}" for required field "${field}"`);
+              fixedRequired.push(matchingProp);
+              matchFound = true;
+              needsFixing = true;
+              break;
+            }
+          }
+          
+          if (!matchFound) {
+            console.error(`No matching property found for required field "${field}". Keeping as-is.`);
+            fixedRequired.push(field); // Keep the original to avoid undefined errors
+          }
+        } else {
+          fixedRequired.push(field); // Keep field as-is if it matches a property
+        }
+      }
+      
+      // Apply the fixed required array if needed
+      if (needsFixing) {
+        console.log(`Fixing schema.required: [${requiredFields.join(', ')}] -> [${fixedRequired.join(', ')}]`);
+        schemaConfig.schema.required = fixedRequired;
+      }
+      
+      // Do another check to make sure we didn't miss anything
+      for (const field of schemaConfig.schema.required) {
+        if (!properties[field]) {
+          console.warn(`STILL UNRESOLVED: Required field "${field}" doesn't match any property!`);
+        }
+      }
+    }
+    
+    // Apply the fixed schema to the config
+    config.structuredOutputSchema = schemaConfig;
+    
+    console.log(`Configuring agent with structured output schema: ${schemaConfig.name}`);
+    console.log(`Schema strict mode: ${schemaConfig.strict || false}`);
   }
   
   const featherAgent = new FeatherAgent(config);

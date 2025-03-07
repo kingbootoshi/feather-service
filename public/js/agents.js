@@ -45,9 +45,7 @@ document.addEventListener('DOMContentLoaded', () => {
       // Send the request to run the agent
       const response = await fetch(`/api/agents/${currentAgentId}/run`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
+        headers: getAuthHeaders(),
         body: JSON.stringify({ input })
       });
       
@@ -94,7 +92,8 @@ document.addEventListener('DOMContentLoaded', () => {
       if (confirm('Are you sure you want to delete this agent?')) {
         try {
           const response = await fetch(`/api/agents/${agentId}`, {
-            method: 'DELETE'
+            method: 'DELETE',
+            headers: getAuthHeaders()
           });
           
           if (!response.ok) {

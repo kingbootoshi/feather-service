@@ -54,18 +54,19 @@ function extractInput(output: any, inputMapping?: string): string {
 }
 
 // Execute a pipeline of agents
-export async function runPipeline(pipeline: Pipeline, initialInput: string): Promise<Run> {
+export async function runPipeline(pipeline: Pipeline, initialInput: string, userId: string): Promise<Run> {
   console.log(`Starting pipeline execution for ${pipeline.id} (${pipeline.name})`);
   console.log(`Pipeline has ${pipeline.steps.length} steps`);
   console.log(`Initial input: "${initialInput.substring(0, 100)}${initialInput.length > 100 ? '...' : ''}"`);
   
   // Create a new run record
-  const run: Run = createRun({
+  const run = await createRun({
+    user_id: userId,
     pipelineId: pipeline.id,
     input: initialInput,
     outputs: [],
     status: 'running',
-  });
+  }, userId);
   
   console.log(`Created run record with ID: ${run.id}`);
 
@@ -79,7 +80,7 @@ export async function runPipeline(pipeline: Pipeline, initialInput: string): Pro
       console.log(`\n--- Executing Pipeline Step ${i + 1}/${pipeline.steps.length} ---`);
       
       const step = pipeline.steps[i];
-      const agent = getAgentById(step.agentId);
+      const agent = await getAgentById(step.agentId, userId);
 
       if (!agent) {
         console.error(`Agent with ID ${step.agentId} not found for pipeline step ${i+1}`);
@@ -134,9 +135,9 @@ export async function runPipeline(pipeline: Pipeline, initialInput: string): Pro
 
       // Update the run record in the database
       console.log(`Updating run record with step ${i+1} output`);
-      updateRun(run.id, {
+      await updateRun(run.id, {
         outputs: run.outputs
-      });
+      }, userId);
 
       // If the agent execution failed, break the pipeline
       if (!result.success) {
@@ -182,7 +183,7 @@ export async function runPipeline(pipeline: Pipeline, initialInput: string): Pro
     
     // Update the run record with the final status, output, and metadata
     console.log(`Finalizing run record with status: completed`);
-    return updateRun(run.id, {
+    return await updateRun(run.id, {
       status: 'completed',
       finalOutput,
       finalOutputMeta: lastResult ? {
@@ -190,14 +191,14 @@ export async function runPipeline(pipeline: Pipeline, initialInput: string): Pro
         structuredOutput: lastResult.structuredOutput
       } : undefined,
       completedAt: new Date()
-    }) as Run;
+    }, userId) as Run;
   } catch (error) {
     // Update the run record with the error
     console.error(`Pipeline execution failed:`, error);
-    return updateRun(run.id, {
+    return await updateRun(run.id, {
       status: 'failed',
       error: error instanceof Error ? error.message : 'Unknown error occurred',
       completedAt: new Date()
-    }) as Run;
+    }, userId) as Run;
   }
 }

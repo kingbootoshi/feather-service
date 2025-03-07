@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Error - Feather Agent Service</title>
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>Feather Agent Service</h1>
+      <nav>
+        <ul>
+          <li><a href="/">Home</a></li>
+          <li><a href="/agents">Agents</a></li>
+          <li><a href="/pipelines">Pipelines</a></li>
+          <li><a href="/runs">Runs</a></li>
+        </ul>
+      </nav>
+    </header>
+    
+    <main>
+      <section class="content error-page">
+        <div class="alert danger">
+          <h2><%= error.status %> Error</h2>
+          <p><%= message || "An error occurred" %></p>
+          
+          <% if (error.stack && process.env.NODE_ENV === 'development') { %>
+            <div class="stack-trace">
+              <h3>Stack Trace:</h3>
+              <pre><%= error.stack %></pre>
+            </div>
+          <% } %>
+          
+          <div class="error-actions">
+            <a href="javascript:history.back()" class="button secondary">Go Back</a>
+            <a href="/" class="button primary">Go Home</a>
+          </div>
+        </div>
+      </section>
+    </main>
+    
+    <footer>
+      <p>&copy; 2025 Feather Agent Service</p>
+    </footer>
+  </div>
+  
+  <script src="/js/utils.js"></script>
+  <script src="/js/main.js"></script>
+</body>
+</html>

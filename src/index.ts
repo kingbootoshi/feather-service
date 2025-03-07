@@ -7,15 +7,14 @@ import dotenv from 'dotenv';
 import agentRoutes from './routes/agentRoutes';
 import pipelineRoutes from './routes/pipelineRoutes';
 import uiRoutes from './routes/uiRoutes';
-
-// Import database
-import { initDatabase } from './db/database';
+import authRoutes from './routes/authRoutes';
+import runRoutes from './routes/runRoutes';
 
 // Initialize environment variables
 dotenv.config();
 
-// Initialize the database
-initDatabase();
+// Initialize the supabase client
+import { supabase } from './utils/supabase';
 
 // Initialize the express app
 const app = express();
@@ -35,8 +34,10 @@ app.set('view engine', 'html');
 app.engine('html', require('ejs').renderFile);
 
 // Routes
+app.use('/auth', authRoutes);
 app.use('/api/agents', agentRoutes);
 app.use('/api/pipelines', pipelineRoutes);
+app.use('/api/runs', runRoutes);
 app.use('/', uiRoutes);
 
 // Start the server

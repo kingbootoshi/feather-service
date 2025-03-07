@@ -12,21 +12,34 @@ import { runPipeline } from '../utils/pipelineService';
 import { Pipeline } from '../models/types';
 
 // Get all pipelines
-export const getPipelines = (req: Request, res: Response): void => {
+export const getPipelines = async (req: Request, res: Response): Promise<void> => {
   try {
-    const pipelines = getAllPipelines();
+    // Get user ID from the auth middleware
+    if (!req.userId) {
+      res.status(401).json({ error: 'Authentication required' });
+      return;
+    }
+    
+    const pipelines = await getAllPipelines(req.userId);
     res.status(200).json(pipelines);
   } catch (error) {
+    console.error('Error fetching pipelines:', error);
     res.status(500).json({ error: 'Failed to fetch pipelines' });
   }
 };
 
 // Get a single pipeline by ID
-export const getPipeline = (req: Request, res: Response): void => {
+export const getPipeline = async (req: Request, res: Response): Promise<void> => {
   try {
     console.log(`Getting pipeline details for ID: ${req.params.id}`);
     
-    const pipeline = getPipelineById(req.params.id);
+    // Get user ID from the auth middleware
+    if (!req.userId) {
+      res.status(401).json({ error: 'Authentication required' });
+      return;
+    }
+    
+    const pipeline = await getPipelineById(req.params.id, req.userId);
     if (!pipeline) {
       console.log(`Pipeline with ID ${req.params.id} not found`);
       res.status(404).json({ error: 'Pipeline not found' });
@@ -37,13 +50,13 @@ export const getPipeline = (req: Request, res: Response): void => {
     if (req.query.includeLatestRun === 'true') {
       console.log(`Including latest run for pipeline ${req.params.id}`);
       
-      // Get all runs
-      const allRuns = getAllRuns();
+      // Get all runs for this pipeline
+      const allRuns = await getAllRuns(req.userId, { pipelineId: pipeline.id });
       
-      // Filter runs for this pipeline and sort by createdAt (newest first)
-      const pipelineRuns = allRuns
-        .filter(run => run.pipelineId === pipeline.id)
-        .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+      // Sort by createdAt (newest first)
+      const pipelineRuns = allRuns.sort((a, b) => 
+        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      );
       
       // Add latest run if exists
       if (pipelineRuns.length > 0) {
@@ -80,8 +93,14 @@ export const getPipeline = (req: Request, res: Response): void => {
 };
 
 // Create a new pipeline
-export const createNewPipeline = (req: Request, res: Response): void => {
+export const createNewPipeline = async (req: Request, res: Response): Promise<void> => {
   try {
+    // Get user ID from the auth middleware
+    if (!req.userId) {
+      res.status(401).json({ error: 'Authentication required' });
+      return;
+    }
+    
     const { name, description, steps, outputDestinations } = req.body;
 
     // Validate required fields
@@ -104,15 +123,17 @@ export const createNewPipeline = (req: Request, res: Response): void => {
     }
 
     const pipelineData: Omit<Pipeline, 'id' | 'createdAt'> = {
+      user_id: req.userId,
       name,
       description: description || '',
       steps,
       outputDestinations
     };
 
-    const newPipeline = createPipeline(pipelineData);
+    const newPipeline = await createPipeline(pipelineData, req.userId);
     res.status(201).json(newPipeline);
   } catch (error) {
+    console.error('Error creating pipeline:', error);
     res.status(500).json({ 
       error: 'Failed to create pipeline',
       details: error instanceof Error ? error.message : 'Unknown error'
@@ -121,16 +142,22 @@ export const createNewPipeline = (req: Request, res: Response): void => {
 };
 
 // Update an existing pipeline
-export const updateExistingPipeline = (req: Request, res: Response): void => {
+export const updateExistingPipeline = async (req: Request, res: Response): Promise<void> => {
   try {
+    // Get user ID from the auth middleware
+    if (!req.userId) {
+      res.status(401).json({ error: 'Authentication required' });
+      return;
+    }
+    
     const { name, description, steps, outputDestinations } = req.body;
 
-    const updatedPipeline = updatePipeline(req.params.id, {
+    const updatedPipeline = await updatePipeline(req.params.id, {
       name,
       description,
       steps,
       outputDestinations
-    });
+    }, req.userId);
 
     if (!updatedPipeline) {
       res.status(404).json({ error: 'Pipeline not found' });
@@ -139,21 +166,35 @@ export const updateExistingPipeline = (req: Request, res: Response): void => {
 
     res.status(200).json(updatedPipeline);
   } catch (error) {
-    res.status(500).json({ error: 'Failed to update pipeline' });
+    console.error('Error updating pipeline:', error);
+    res.status(500).json({ 
+      error: 'Failed to update pipeline',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    });
   }
 };
 
 // Delete a pipeline
-export const deleteExistingPipeline = (req: Request, res: Response): void => {
+export const deleteExistingPipeline = async (req: Request, res: Response): Promise<void> => {
   try {
-    const deleted = deletePipeline(req.params.id);
+    // Get user ID from the auth middleware
+    if (!req.userId) {
+      res.status(401).json({ error: 'Authentication required' });
+      return;
+    }
+    
+    const deleted = await deletePipeline(req.params.id, req.userId);
     if (!deleted) {
       res.status(404).json({ error: 'Pipeline not found' });
       return;
     }
     res.status(204).send();
   } catch (error) {
-    res.status(500).json({ error: 'Failed to delete pipeline' });
+    console.error('Error deleting pipeline:', error);
+    res.status(500).json({ 
+      error: 'Failed to delete pipeline',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    });
   }
 };
 
@@ -162,7 +203,13 @@ export const runExistingPipeline = async (req: Request, res: Response): Promise<
   try {
     console.log(`Running pipeline with ID: ${req.params.id}`);
     
-    const pipeline = getPipelineById(req.params.id);
+    // Get user ID from the auth middleware
+    if (!req.userId) {
+      res.status(401).json({ error: 'Authentication required' });
+      return;
+    }
+    
+    const pipeline = await getPipelineById(req.params.id, req.userId);
     if (!pipeline) {
       console.log(`Pipeline with ID ${req.params.id} not found`);
       res.status(404).json({ error: 'Pipeline not found' });
@@ -179,7 +226,7 @@ export const runExistingPipeline = async (req: Request, res: Response): Promise<
     console.log(`Starting pipeline execution for ${pipeline.name} (${pipeline.id})`);
     
     // Run the pipeline asynchronously and return the run ID for tracking
-    const run = await runPipeline(pipeline, input);
+    const run = await runPipeline(pipeline, input, req.userId);
     
     console.log(`Pipeline execution completed with status: ${run.status}`);
     
@@ -203,24 +250,29 @@ export const runExistingPipeline = async (req: Request, res: Response): Promise<
 };
 
 // Get all runs for a pipeline
-export const getPipelineRuns = (req: Request, res: Response): void => {
+export const getPipelineRuns = async (req: Request, res: Response): Promise<void> => {
   try {
     console.log(`Getting all runs for pipeline ID: ${req.params.id}`);
     
+    // Get user ID from the auth middleware
+    if (!req.userId) {
+      res.status(401).json({ error: 'Authentication required' });
+      return;
+    }
+    
     // First check if the pipeline exists
-    const pipeline = getPipelineById(req.params.id);
+    const pipeline = await getPipelineById(req.params.id, req.userId);
     if (!pipeline) {
       console.log(`Pipeline with ID ${req.params.id} not found`);
       res.status(404).json({ error: 'Pipeline not found' });
       return;
     }
     
-    // Get all runs
-    const allRuns = getAllRuns();
+    // Get all runs for this pipeline
+    const allRuns = await getAllRuns(req.userId, { pipelineId: pipeline.id });
     
-    // Filter runs for this pipeline and sort by createdAt (newest first)
+    // Sort by createdAt (newest first) and map to simplified objects
     const pipelineRuns = allRuns
-      .filter(run => run.pipelineId === pipeline.id)
       .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
       .map(run => ({
         id: run.id,
@@ -251,10 +303,17 @@ export const getPipelineRuns = (req: Request, res: Response): void => {
 };
 
 // Get a specific run
-export const getRun = (req: Request, res: Response): void => {
+export const getRun = async (req: Request, res: Response): Promise<void> => {
   try {
     console.log(`Getting run details for run ID: ${req.params.runId}`);
-    const run = getRunById(req.params.runId);
+    
+    // Get user ID from the auth middleware
+    if (!req.userId) {
+      res.status(401).json({ error: 'Authentication required' });
+      return;
+    }
+    
+    const run = await getRunById(req.params.runId, req.userId);
     
     if (!run) {
       console.log(`Run with ID ${req.params.runId} not found`);

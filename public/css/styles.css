@@ -290,6 +290,111 @@ textarea:focus {
   font-family: monospace;
 }
 
+/* Schema Builder Styling */
+.schema-property {
+  background-color: white;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 1.25rem;
+  margin-bottom: 1rem;
+}
+
+.schema-property-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--medium-gray);
+}
+
+.schema-property-list h4 {
+  margin-bottom: 1rem;
+}
+
+.nested-properties {
+  margin-top: 1rem;
+  padding: 1rem;
+  background-color: var(--light-gray);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+}
+
+.nested-properties-container {
+  margin-bottom: 1rem;
+}
+
+#structuredOutputPreview {
+  font-family: monospace;
+  background-color: var(--dark-gray);
+  color: white;
+  padding: 1rem;
+  border-radius: 8px;
+  white-space: pre;
+  overflow-x: auto;
+  max-height: 300px;
+}
+
+/* Tool Parameter Builder */
+.tool-parameter {
+  background-color: white;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 1.25rem;
+  margin-bottom: 1rem;
+}
+
+.parameter-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--medium-gray);
+}
+
+.tool-parameters-list {
+  margin-bottom: 1rem;
+}
+
+/* Monaco Editor Container */
+.monaco-editor-container {
+  height: 300px;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  margin-bottom: 1rem;
+  overflow: hidden;
+}
+
+/* Tool Test Section */
+.tool-test-section {
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--border-color);
+}
+
+.test-args-container {
+  margin-bottom: 1rem;
+}
+
+.test-result {
+  font-family: monospace;
+  background-color: var(--light-gray);
+  padding: 1rem;
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+  white-space: pre-wrap;
+  overflow-x: auto;
+  min-height: 100px;
+  max-height: 300px;
+}
+
+.test-result.error {
+  color: var(--danger-color);
+  border-color: var(--danger-color);
+  background-color: rgba(220, 53, 69, 0.05);
+}
+
 /* Cards */
 .agent-card, 
 .pipeline-card {

@@ -69,11 +69,18 @@ document.addEventListener('DOMContentLoaded', () => {
     };
     
     try {
+      // Check for authentication token
+      const token = localStorage.getItem('access_token');
+      if (!token) {
+        throw new Error('Authentication required. Please log in again.');
+      }
+
       // Send the data to the API
       const response = await fetch('/api/pipelines', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          ...getAuthHeaders() // Include authentication headers
         },
         body: JSON.stringify(pipelineData)
       });

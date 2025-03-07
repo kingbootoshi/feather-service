@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Edit Agent - Feather Agent Service</title>
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>Feather Agent Service</h1>
+      <nav>
+        <ul>
+          <li><a href="/">Home</a></li>
+          <li><a href="/agents" class="active">Agents</a></li>
+          <li><a href="/pipelines">Pipelines</a></li>
+          <li><a href="/runs">Runs</a></li>
+          <!-- User menu (shown when logged in) -->
+          <li id="user-menu" class="hidden">
+            <a href="/profile" id="profile-link">My Profile</a>
+          </li>
+          <!-- Auth links (shown when logged out) -->
+          <li id="auth-links">
+            <a href="/login" class="button small">Log In</a>
+            <a href="/register" class="button small primary">Register</a>
+          </li>
+        </ul>
+      </nav>
+    </header>
+    
+    <main>
+      <section class="page-header">
+        <h2>Edit Agent</h2>
+        <a href="/agents" class="button secondary">Back to Agents</a>
+      </section>
+      
+      <section class="content">
+        <form id="edit-agent-form" class="form">
+          <div class="form-group">
+            <label for="name">Agent Name</label>
+            <input type="text" id="name" name="name" value="<%= agent.name %>" required>
+          </div>
+          
+          <div class="form-group">
+            <label for="model">Model</label>
+            <select id="model" name="model" required>
+              <option value="openai/gpt-4o" <%= agent.model === 'openai/gpt-4o' ? 'selected' : '' %>>OpenAI GPT-4o</option>
+              <option value="anthropic/claude-3-5-sonnet" <%= agent.model === 'anthropic/claude-3-5-sonnet' ? 'selected' : '' %>>Anthropic Claude 3.5 Sonnet</option>
+              <option value="anthropic/claude-3-opus" <%= agent.model === 'anthropic/claude-3-opus' ? 'selected' : '' %>>Anthropic Claude 3 Opus</option>
+              <option value="google/gemini-pro" <%= agent.model === 'google/gemini-pro' ? 'selected' : '' %>>Google Gemini Pro</option>
+              <option value="google/gemini-ultra" <%= agent.model === 'google/gemini-ultra' ? 'selected' : '' %>>Google Gemini Ultra</option>
+              <option value="meta/llama-3-70b-instruct" <%= agent.model === 'meta/llama-3-70b-instruct' ? 'selected' : '' %>>Meta Llama 3 70B Instruct</option>
+            </select>
+          </div>
+          
+          <div class="form-group">
+            <label for="systemPrompt">System Prompt</label>
+            <textarea id="systemPrompt" name="systemPrompt" rows="8" required><%= agent.systemPrompt %></textarea>
+          </div>
+          
+          <div class="form-group checkbox">
+            <label for="autoExecuteTools">
+              <input type="checkbox" id="autoExecuteTools" <%= agent.autoExecuteTools !== false ? 'checked' : '' %>>
+              Auto Execute Tools
+            </label>
+            <p class="form-help">When enabled, tool calls will automatically execute and return results to the agent.</p>
+          </div>
+
+          <div class="form-group checkbox">
+            <label for="cognition">
+              <input type="checkbox" id="cognition" <%= agent.cognition ? 'checked' : '' %>>
+              Enable Cognition (think, plan, speak features)
+            </label>
+            <p class="form-help">Enables &lt;think&gt;, &lt;plan&gt;, and &lt;speak&gt; XML tags for structured reasoning.</p>
+          </div>
+
+          <div class="form-group checkbox">
+            <label for="chainRun">
+              <input type="checkbox" id="chainRun" <%= agent.chainRun ? 'checked' : '' %>>
+              Enable Chain Run (multiple steps)
+            </label>
+            <p class="form-help">Allows the agent to execute multiple steps in sequence with a finish_run tool.</p>
+          </div>
+
+          <div class="form-group">
+            <label for="maxChainIterations">Max Chain Iterations</label>
+            <input type="number" id="maxChainIterations" value="<%= agent.maxChainIterations || 5 %>" min="1" max="20">
+            <p class="form-help">Maximum number of iterations when chain running is enabled.</p>
+          </div>
+
+          <div class="form-group checkbox">
+            <label for="forceTool">
+              <input type="checkbox" id="forceTool" <%= agent.forceTool ? 'checked' : '' %>>
+              Force Tool Usage
+            </label>
+            <p class="form-help">Force the agent to use exactly one tool (requires exactly one tool).</p>
+          </div>
+
+          <div class="form-group">
+            <label for="additionalParams">Additional LLM Parameters (JSON)</label>
+            <textarea id="additionalParams" rows="3"><%= JSON.stringify(agent.additionalParams || {}, null, 2) %></textarea>
+            <p class="form-help">Optional parameters to pass to the LLM API (e.g., temperature, top_p).</p>
+          </div>
+          
+          <div class="advanced-section">
+            <h3>Advanced Configuration <span class="toggle-button" id="toggle-advanced">Show</span></h3>
+            <div id="advanced-fields" class="hidden">
+              <div class="form-group">
+                <label for="tools">Tools (JSON)</label>
+                <textarea id="tools" name="tools" rows="10"><%= JSON.stringify(agent.tools || [], null, 2) %></textarea>
+                <p class="form-help">Edit the JSON directly to modify tools. Be careful with the format.</p>
+              </div>
+              
+              <div class="form-group">
+                <label for="structuredOutputSchema">Structured Output Schema (JSON)</label>
+                <textarea id="structuredOutputSchema" name="structuredOutputSchema" rows="10"><%= JSON.stringify(agent.structuredOutputSchema || null, null, 2) %></textarea>
+                <p class="form-help">Edit the JSON directly to modify the schema. Be careful with the format.</p>
+              </div>
+            </div>
+          </div>
+          
+          <div class="form-actions">
+            <button type="submit" class="button primary">Save Changes</button>
+            <a href="/agents" class="button secondary">Cancel</a>
+          </div>
+        </form>
+      </section>
+    </main>
+    
+    <footer>
+      <p>&copy; 2025 Feather Agent Service</p>
+    </footer>
+  </div>
+  
+  <script src="/js/utils.js"></script>
+  <script>
+    const agentId = "<%= agent.id %>";
+  </script>
+  <script src="/js/agents-edit.js"></script>
+</body>
+</html>

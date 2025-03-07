@@ -16,6 +16,7 @@ export interface Tool {
 
 export interface Agent {
   id: string;
+  user_id: string;
   name: string;
   model: string;
   systemPrompt: string;
@@ -47,6 +48,7 @@ export interface OutputDestination {
 
 export interface Pipeline {
   id: string;
+  user_id: string;
   name: string;
   description: string;
   steps: PipelineStep[];
@@ -69,6 +71,7 @@ export interface RunOutput {
 
 export interface Run {
   id: string;
+  user_id: string;
   pipelineId?: string;
   agentId?: string;
   input: string;
@@ -87,6 +90,14 @@ export interface Run {
   completedAt?: Date;
 }
 
+export interface ApiKey {
+  id: string;
+  user_id: string;
+  key: string;
+  created_at: Date;
+  last_used_at?: Date;
+}
+
 export interface StandardAgentOutput {
   success: boolean;
   output: string | object;
@@ -96,4 +107,16 @@ export interface StandardAgentOutput {
   }>;
   structuredOutput?: boolean;
   error?: string;
+}
+
+export interface User {
+  id: string;
+  email: string;
+}
+
+export interface AuthSession {
+  access_token: string;
+  refresh_token: string;
+  expires_in: number;
+  user: User;
 }

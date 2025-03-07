@@ -4,6 +4,22 @@
 document.addEventListener('DOMContentLoaded', () => {
   console.log('Pipelines page initialized');
   
+  // Check for authentication
+  const token = localStorage.getItem('access_token');
+  if (!token) {
+    console.warn('No access token found - user may not be authenticated');
+    // Store current URL for redirect after login
+    localStorage.setItem('redirect_after_login', window.location.pathname);
+    // Optional: Show a message to the user
+    const content = document.querySelector('.content');
+    if (content) {
+      const authWarning = document.createElement('div');
+      authWarning.className = 'auth-warning';
+      authWarning.innerHTML = '<p>Authentication required. Please <a href="/login">log in</a> to view and manage pipelines.</p>';
+      content.prepend(authWarning);
+    }
+  }
+  
   // Get elements
   const runButtons = document.querySelectorAll('.run-pipeline');
   const editButtons = document.querySelectorAll('.edit-pipeline');
@@ -46,9 +62,7 @@ document.addEventListener('DOMContentLoaded', () => {
       // Send the request to run the pipeline
       const response = await fetch(`/api/pipelines/${currentPipelineId}/run`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
+        headers: getAuthHeaders(),
         body: JSON.stringify({ input })
       });
       
@@ -100,7 +114,8 @@ document.addEventListener('DOMContentLoaded', () => {
       if (confirm('Are you sure you want to delete this pipeline?')) {
         try {
           const response = await fetch(`/api/pipelines/${pipelineId}`, {
-            method: 'DELETE'
+            method: 'DELETE',
+            headers: getAuthHeaders()
           });
           
           if (!response.ok) {

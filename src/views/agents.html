@@ -16,6 +16,15 @@
           <li><a href="/agents" class="active">Agents</a></li>
           <li><a href="/pipelines">Pipelines</a></li>
           <li><a href="/runs">Runs</a></li>
+          <!-- User menu (shown when logged in) -->
+          <li id="user-menu" class="hidden">
+            <a href="/profile" id="profile-link">My Profile</a>
+          </li>
+          <!-- Auth links (shown when logged out) -->
+          <li id="auth-links">
+            <a href="/login" class="button small">Log In</a>
+            <a href="/register" class="button small primary">Register</a>
+          </li>
         </ul>
       </nav>
     </header>
@@ -71,6 +80,8 @@
     </footer>
   </div>
   
+  <script src="/js/utils.js"></script>
+  <script src="/js/main.js"></script>
   <script src="/js/agents.js"></script>
 </body>
 </html>
